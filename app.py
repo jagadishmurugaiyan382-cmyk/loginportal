@@ -1,4 +1,8 @@
-from flask import Flask, render_template, request, redirect, session
+from urllib import request
+
+from flask import Flask, redirect, render_template, session
+
+from db import cursor, conn
 import db
 
 app = Flask(__name__)
@@ -15,18 +19,18 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        db.cursor.execute(
-            "SELECT * FROM users WHERE username=%s AND password=%s",
-            (username, password)
-        )
+        cursor.execute(
+          "SELECT * FROM users WHERE username=? AND password=?",
+           (username, password)
+       )
 
-        result = db.cursor.fetchone()
+    result = cursor.fetchone() 
 
-        if result:
-            session["user"] = username
-            return redirect("/dashboard")
-        else:
-            return "Invalid login"
+    if result:
+        session["user"] = username
+        return redirect("/dashboard")
+    else:
+        return "Invalid login"
 
     return render_template("login.html")
 

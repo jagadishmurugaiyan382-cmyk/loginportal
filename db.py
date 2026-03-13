@@ -1,11 +1,14 @@
-import mysql.connector
+import sqlite3
 
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database="studentdb"
+conn = sqlite3.connect("database.db", check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users(
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+username TEXT,
+password TEXT
 )
+""")
 
-cursor = db.cursor()
-print("Database connection successful")
+conn.commit()
