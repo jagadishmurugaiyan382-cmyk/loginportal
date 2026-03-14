@@ -1,12 +1,11 @@
-from flask import Flask, redirect, render_template, session
-
-from db import cursor,conn
+from flask import Flask, render_template, request, redirect, session
+from db import cursor, conn
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 
 
-# ---------------- LOGIN ----------------
+# -------- LOGIN --------
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -17,22 +16,22 @@ def login():
         password = request.form["password"]
 
         cursor.execute(
-          "SELECT * FROM users WHERE username=? AND password=?",
-           (username, password)
-       )
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username, password)
+        )
 
-    result = cursor.fetchone() 
+        result = cursor.fetchone()
 
-    if result:
-        session["user"] = username
-        return redirect("/dashboard")
-    else:
-        return "Invalid login"
+        if result:
+            session["user"] = username
+            return redirect("/dashboard")
+        else:
+            return "Invalid login"
 
     return render_template("login.html")
 
 
-# ---------------- REGISTER ----------------
+# -------- REGISTER --------
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -42,19 +41,19 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
 
-        db.cursor.execute(
-            "INSERT INTO users (username, password) VALUES (%s,%s)",
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (?,?)",
             (username, password)
         )
 
-        db.conn.commit()
+        conn.commit()
 
         return redirect("/")
 
     return render_template("register.html")
 
 
-# ---------------- DASHBOARD ----------------
+# -------- DASHBOARD --------
 
 @app.route("/dashboard")
 def dashboard():
@@ -63,38 +62,37 @@ def dashboard():
         return render_template("dashboard.html")
 
     return redirect("/")
+
+
+# -------- USERS --------
+
 @app.route("/users")
 def users():
 
-    db.cursor.execute("SELECT * FROM users")
-
-    data = db.cursor.fetchall()
+    cursor.execute("SELECT * FROM users")
+    data = cursor.fetchall()
 
     return render_template("users.html", users=data)
+
+
+# -------- DELETE --------
 
 @app.route("/delete/<int:id>")
 def delete(id):
 
-    db.cursor.execute(
-        "DELETE FROM users WHERE id=%s",
+    cursor.execute(
+        "DELETE FROM users WHERE id=?",
         (id,)
     )
 
-    db.conn.commit()
+    conn.commit()
 
     return redirect("/users")
 
 
-# ---------------- LOGOUT ----------------
+# -------- EDIT --------
 
-@app.route("/logout")
-def logout():
-
-    session.pop("user", None)
-    return redirect("/")
-
-
-@app.route("/edit/<int:id>", methods=["GET","POST"])
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
 
     if request.method == "POST":
@@ -102,23 +100,32 @@ def edit(id):
         username = request.form["username"]
         password = request.form["password"]
 
-        db.cursor.execute(
-            "UPDATE users SET username=%s, password=%s WHERE id=%s",
+        cursor.execute(
+            "UPDATE users SET username=?, password=? WHERE id=?",
             (username, password, id)
         )
 
-        db.conn.commit()
+        conn.commit()
 
         return redirect("/users")
 
-    db.cursor.execute(
-        "SELECT * FROM users WHERE id=%s",
+    cursor.execute(
+        "SELECT * FROM users WHERE id=?",
         (id,)
     )
 
-    user = db.cursor.fetchone()
+    user = cursor.fetchone()
 
     return render_template("edit.html", user=user)
+
+
+# -------- LOGOUT --------
+
+@app.route("/logout")
+def logout():
+
+    session.pop("user", None)
+    return redirect("/")
 
 
 if __name__ == "__main__":
