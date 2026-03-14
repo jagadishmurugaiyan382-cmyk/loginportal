@@ -1,7 +1,6 @@
 from flask import Flask, redirect, render_template, session
 
-from db import cursor, conn
-import db
+from db import cursor,conn
 
 app = Flask(__name__)
 app.secret_key = "secret123"
