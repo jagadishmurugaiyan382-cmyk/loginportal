@@ -1,5 +1,3 @@
-from urllib import request
-
 from flask import Flask, redirect, render_template, session
 
 from db import cursor, conn
